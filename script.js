@@ -49,32 +49,28 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 3000);
 });
 
-// Регистрация гостя через GitHub API
 async function registerGuest(firstName, lastName) {
-    const REPO_OWNER = 'YOUR_GITHUB_USERNAME';
-    const REPO_NAME = 'YOUR_REPO_NAME';
-    const TOKEN = 'ghp_YOUR_PERSONAL_TOKEN'; // Токен с доступом к issues
+    const REPO_OWNER = 'Waldemar-Foma';
+    const REPO_NAME = 'happy';
     
-    const response = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/issues`, {
-        method: 'POST',
-        headers: {
-            'Authorization': `token ${TOKEN}`,
-            'Accept': 'application/vnd.github.v3+json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            title: `Гость: ${firstName} ${lastName}`,
-            body: `Дата регистрации: ${new Date().toISOString()}\n\nИмя: ${firstName}\nФамилия: ${lastName}`,
-            labels: ['guest']
-        })
-    });
-    
-    if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Ошибка сервера');
+    try {
+        const response = await fetch(`/.netlify/functions/register-guest`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                firstName,
+                lastName
+            })
+        });
+        
+        if (!response.ok) throw new Error('Ошибка сервера');
+        return await response.json();
+    } catch (error) {
+        console.error('Registration error:', error);
+        throw error;
     }
-    
-    return response.json();
 }
 
 function showMessage(text, type = 'success') {

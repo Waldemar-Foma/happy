@@ -9,55 +9,38 @@ document.addEventListener('DOMContentLoaded', function() {
     // Обработка формы
     const form = document.getElementById('registration-form');
     if (form) {
-        form.addEventListener('submit', function(e) {
+        form.addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const firstName = document.getElementById('firstName').value.trim();
             const lastName = document.getElementById('lastName').value.trim();
-            const fullName = `${firstName} ${lastName}`.toLowerCase();
             
-            // Загружаем текущий список гостей
-            let guests = loadGuestsFromStorage();
-                
-            // Проверяем на дубликаты
-            const isDuplicate = guests.some(guest => 
-                `${guest.firstName} ${guest.lastName}`.toLowerCase() === fullName
-            );
-            
-            if (isDuplicate) {
-                showMessage(`$ ${firstName}, вы уже в списке гостей!`, 'error');
+            if (!firstName || !lastName) {
+                showMessage('$ Пожалуйста, заполните все поля', 'error');
                 return;
             }
             
-            // Добавляем нового гостя
-            const newGuest = {
-                firstName,
-                lastName,
-                timestamp: new Date().toISOString()
-            };
-            
-            guests.push(newGuest);
-            saveGuestsToStorage(guests);
-            downloadGuestsJSON(guests);
-            
-            // Показываем сообщение об успехе
-            showMessage(`$ Спасибо, ${firstName}! Вы добавлены в список гостей.`, 'success');
-            
-            // Очищаем форму
-            form.reset();
-            
-            // Обновляем список гостей на других вкладках
-            localStorage.setItem('forceUpdate', Date.now().toString());
+            try {
+                // Показываем загрузку
+                const submitBtn = form.querySelector('button[type="submit"]');
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner">⌛</span> Отправка...';
+                
+                // Отправляем данные
+                await registerGuest(firstName, lastName);
+                
+                showMessage(`$ Спасибо, ${firstName}! Вы добавлены в список.`, 'success');
+                form.reset();
+            } catch (error) {
+                console.error('Ошибка регистрации:', error);
+                showMessage(`$ Ошибка: ${error.message}`, 'error');
+            } finally {
+                const submitBtn = form.querySelector('button[type="submit"]');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'Отправить →';
+            }
         });
     }
-    
-    // Слушаем изменения в localStorage для обновления между вкладками
-    window.addEventListener('storage', function(e) {
-        if (e.key === 'forceUpdate') {
-            const guests = loadGuestsFromStorage();
-            saveGuestsToStorage(guests); // Триггерим обновление
-        }
-    });
     
     // Случайные эффекты в фоне
     setInterval(() => {
@@ -66,33 +49,32 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 3000);
 });
 
-// Функции для работы с гостями
-function loadGuestsFromStorage() {
-    try {
-        const guestsJSON = localStorage.getItem('birthdayGuests');
-        return guestsJSON ? JSON.parse(guestsJSON) : [];
-    } catch (error) {
-        console.error('Ошибка загрузки гостей:', error);
-        return [];
+// Регистрация гостя через GitHub API
+async function registerGuest(firstName, lastName) {
+    const REPO_OWNER = 'YOUR_GITHUB_USERNAME';
+    const REPO_NAME = 'YOUR_REPO_NAME';
+    const TOKEN = 'ghp_YOUR_PERSONAL_TOKEN'; // Токен с доступом к issues
+    
+    const response = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/issues`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `token ${TOKEN}`,
+            'Accept': 'application/vnd.github.v3+json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            title: `Гость: ${firstName} ${lastName}`,
+            body: `Дата регистрации: ${new Date().toISOString()}\n\nИмя: ${firstName}\nФамилия: ${lastName}`,
+            labels: ['guest']
+        })
+    });
+    
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Ошибка сервера');
     }
-}
-
-function saveGuestsToStorage(guests) {
-    try {
-        localStorage.setItem('birthdayGuests', JSON.stringify(guests));
-    } catch (error) {
-        console.error('Ошибка сохранения гостей:', error);
-    }
-}
-
-function downloadGuestsJSON(guests) {
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(guests, null, 2));
-    const downloadAnchorNode = document.createElement('a');
-    downloadAnchorNode.setAttribute("href", dataStr);
-    downloadAnchorNode.setAttribute("download", "guests.json");
-    document.body.appendChild(downloadAnchorNode);
-    downloadAnchorNode.click();
-    downloadAnchorNode.remove();
+    
+    return response.json();
 }
 
 function showMessage(text, type = 'success') {

@@ -1,17 +1,12 @@
 name: Guest Registration
 on:
-  workflow_dispatch:
   issues:
     types: [opened]
-
 jobs:
   process-guest:
     runs-on: ubuntu-latest
     steps:
-      - name: Close the issue
-        uses: actions/github-script@v6
-        env:
-          TOKEN: ${{ secrets.GUEST_REG_TOKEN }}
+      - uses: actions/github-script@v6
         with:
           script: |
             await github.rest.issues.update({

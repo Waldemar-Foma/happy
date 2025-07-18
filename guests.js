@@ -1,76 +1,55 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Функция для обновления списка гостей
-    function updateGuestList() {
+    const guestList = document.getElementById('guest-list');
+    const refreshBtn = document.getElementById('refresh-btn');
+    
+    // Загружаем гостей при загрузке страницы
+    loadGuests();
+    
+    // Кнопка обновления
+    refreshBtn.addEventListener('click', loadGuests);
+    
+    async function loadGuests() {
         try {
-            const guests = loadGuestsFromStorage();
-            const guestList = document.getElementById('guest-list');
-            const guestCount = document.getElementById('guest-count');
+            guestList.innerHTML = '<div class="loading-spinner">Загрузка списка гостей...</div>';
             
-            // Сортируем гостей по времени регистрации (новые вверху)
-            guests.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            const guests = await fetchGuests();
             
             if (guests.length === 0) {
                 guestList.innerHTML = '<p class="typewriter">$ Пока никто не подтвердил участие.</p>';
-            } else {
-                guestList.innerHTML = '';
-                guests.forEach(guest => {
-                    const guestItem = document.createElement('div');
-                    guestItem.className = 'guest-item';
-                    guestItem.innerHTML = `
-                        <span class="guest-name">${guest.firstName} ${guest.lastName}</span>
-                        <span class="timestamp">${formatDate(guest.timestamp)}</span>
-                    `;
-                    guestList.appendChild(guestItem);
-                });
+                return;
             }
             
-            // Обновляем счетчик гостей
-            guestCount.textContent = `$ Всего гостей: ${guests.length}`;
+            guestList.innerHTML = '';
+            guests.forEach(guest => {
+                const guestItem = document.createElement('div');
+                guestItem.className = 'guest-item';
+                
+                const title = guest.title.replace('Гость: ', '');
+                const date = new Date(guest.created_at).toLocaleString('ru-RU');
+                
+                guestItem.innerHTML = `
+                    <span class="guest-name">${title}</span>
+                    <span class="timestamp">${date}</span>
+                `;
+                
+                guestList.appendChild(guestItem);
+            });
         } catch (error) {
             console.error('Ошибка загрузки гостей:', error);
-            const guestList = document.getElementById('guest-list');
-            guestList.innerHTML = '<p class="typewriter error">$ Ошибка загрузки списка гостей.</p>';
+            guestList.innerHTML = '<p class="typewriter error">$ Ошибка загрузки списка. Попробуйте позже.</p>';
         }
     }
-
-    // Первоначальная загрузка списка
-    updateGuestList();
     
-    // Проверяем обновления каждые 2 секунды
-    setInterval(updateGuestList, 2000);
-    
-    // Слушаем изменения в localStorage (для обновления между вкладками)
-    window.addEventListener('storage', function(e) {
-        if (e.key === 'birthdayGuests') {
-            updateGuestList();
+    async function fetchGuests() {
+        const REPO_OWNER = 'YOUR_GITHUB_USERNAME';
+        const REPO_NAME = 'YOUR_REPO_NAME';
+        
+        const response = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/issues?labels=guest`);
+        
+        if (!response.ok) {
+            throw new Error('Ошибка загрузки данных');
         }
-    });
-    
-    // Анимация загрузки
-    setTimeout(() => {
-        document.querySelectorAll('.typewriter').forEach(el => {
-            el.style.whiteSpace = 'normal';
-        });
-    }, 3000);
+        
+        return response.json();
+    }
 });
-
-function loadGuestsFromStorage() {
-    try {
-        const guestsJSON = localStorage.getItem('birthdayGuests');
-        return guestsJSON ? JSON.parse(guestsJSON) : [];
-    } catch (error) {
-        console.error('Ошибка загрузки гостей:', error);
-        return [];
-    }
-}
-
-function formatDate(isoString) {
-    const date = new Date(isoString);
-    return date.toLocaleDateString('ru-RU', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-    });
-}

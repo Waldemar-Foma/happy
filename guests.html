@@ -30,21 +30,18 @@
             <p class="typewriter">$ Список подтвердивших гостей:</p>
             
             <div id="guest-list" class="guest-list">
-                <!-- Гости будут добавлены через JavaScript -->
+                <div class="loading-spinner">Загрузка списка гостей...</div>
             </div>
             
-            <div id="guest-count" class="guest-count typewriter delay-1">
-                <!-- Количество гостей будет обновлено через JavaScript -->
-            </div>
-            
-            <div class="links typewriter delay-2">
+            <div class="links typewriter">
                 <a href="index.html" class="terminal-link">← Вернуться на главную</a>
+                <button id="refresh-btn" class="terminal-link">🔄 Обновить список</button>
             </div>
         </div>
     </div>
     
     <div class="hacker-effect"></div>
     
-    <script src="guests.js"></script>
+    <script src="js/guests.js"></script>
 </body>
 </html>

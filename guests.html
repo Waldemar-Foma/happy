@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Список гостей | Приглашение на День Рождения</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="terminal">
+        <div class="terminal-header">
+            <div class="terminal-buttons">
+                <span class="terminal-btn red"></span>
+                <span class="terminal-btn yellow"></span>
+                <span class="terminal-btn green"></span>
+            </div>
+            <span class="terminal-title">guest_list.exe</span>
+        </div>
+        <div class="terminal-body">
+            <div class="ascii-art">
+                <pre>
+  _____ ___ ___ _____ ___   _   ___ _____ ___ 
+ |_   _| _ \ _ \_   _/ __| /_\ | _ \_   _/ __|
+   | | |   /   / | | \__ \/ _ \|   / | | \__ \
+   |_| |_|_\_|_\ |_| |___/_/ \_\_|_\ |_| |___/
+                </pre>
+            </div>
+            
+            <p class="typewriter">$ Список подтвердивших гостей:</p>
+            
+            <div id="guest-list" class="guest-list">
+                <!-- Гости будут добавлены через JavaScript -->
+            </div>
+            
+            <div id="guest-count" class="guest-count typewriter delay-1">
+                <!-- Количество гостей будет обновлено через JavaScript -->
+            </div>
+            
+            <div class="links typewriter delay-2">
+                <a href="index.html" class="terminal-link">← Вернуться на главную</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="hacker-effect"></div>
+    
+    <script src="guests.js"></script>
+</body>
+</html>

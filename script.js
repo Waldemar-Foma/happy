@@ -50,19 +50,13 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 async function registerGuest(firstName, lastName) {
-    const REPO_OWNER = 'Waldemar-Foma';
-    const REPO_NAME = 'happy';
-    
     try {
-        const response = await fetch(`/.netlify/functions/register-guest`, {
+        const response = await fetch('/.netlify/functions/register-guest', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                firstName,
-                lastName
-            })
+            body: JSON.stringify({ firstName, lastName })
         });
         
         if (!response.ok) throw new Error('Ошибка сервера');
